@@ -338,7 +338,7 @@ if (levels.Length == 0)
 
 # АРПО. Лабораторная работа №2 — Настройка репозиториев на GitHub и базовая автоматическая проверка проекта (Sanity Check)
 
-**Студент:** [ФИО полностью], группа [НОМЕР ГРУППЫ]
+**Студент:** Шех М.И., группа 23-СТ
 **Репозиторий:** https://github.com/Tiasssd/2d_platformer (рабочая ветка `LR2`)
 **Резервный репозиторий (backup):** https://github.com/Tiasssd/2d_platformer_backup
 **Путь к проекту:** `C:\Users\shekh\OneDrive\Desktop\АРПО\Лаб 1\2d_platformer`
