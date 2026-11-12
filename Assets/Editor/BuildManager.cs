@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
@@ -10,8 +11,11 @@ using UnityEngine;
 /// </summary>
 public static class BuildManager
 {
-    // Путь для сохранения WebGL-версии игры
-    private static readonly string WebGLBuildPath = "Builds/WebGL";
+    // Путь для сохранения WebGL-версии игры.
+    // Считаем от папки проекта, а не от текущего каталога процесса:
+    // в контейнере Unity может запускаться из другого cwd.
+    private static string WebGLBuildPath =>
+        Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Builds", "WebGL"));
 
     /// <summary>
     /// Автоматический метод сборки игры под платформу WebGL.
@@ -22,6 +26,7 @@ public static class BuildManager
     public static void BuildWebGL()
     {
         Debug.Log("[CI/CD] Запущен автоматический процесс сборки WebGL...");
+        Debug.Log($"[CI/CD] Путь сборки: {WebGLBuildPath}");
 
         // 1. Получаем список сцен, включенных в настройки проекта (Build Settings)
         string[] levels = GetScenes();

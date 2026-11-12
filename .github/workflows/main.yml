@@ -120,6 +120,24 @@ jobs:
               fi
             '
 
+      - name: Show build output
+        if: always()
+        run: |
+          echo "PWD=$PWD"
+          ls -la
+          echo "=== Unity build log (tail) ==="
+          if [ -f build_webgl.log ]; then tail -30 build_webgl.log; fi
+          echo "=== find WebGL artifacts ==="
+          find . -maxdepth 6 \( -name index.html -o -name "*.wasm.gz" \) -print | head -20
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: WebGL-Build-Log
+          path: build_webgl.log
+          if-no-files-found: ignore
+
       - name: Verify build output
         run: |
           test -f Builds/WebGL/index.html
