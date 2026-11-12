@@ -82,7 +82,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: Library
-          key: Library-Build-${{ hashFiles('Packages/packages-lock.json', 'Assets/**/*.asmdef') }}
+          # Тот же ключ, что у run_tests: переиспользуем уже прогретый Library,
+          # чтобы не импортировать все ассеты заново.
+          key: Library-${{ hashFiles('Packages/packages-lock.json', 'Assets/**/*.asmdef') }}
 
       - name: Install GameCI CLI
         # Ставим CLI вне рабочей копии: иначе game-ci и tar.gz делают
@@ -100,6 +102,7 @@ jobs:
           game-ci build --engine=unity --targetPlatform=WebGL \
             --buildMethod=BuildManager.BuildWebGL \
             --engineVersion=6000.3.10f1 \
+            --buildsPath=Builds \
             --dockerIsolationMode=default \
             --containerRegistryRepository=unityci/editor \
             --containerRegistryImageVersion=3
