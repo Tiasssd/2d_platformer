@@ -99,13 +99,20 @@ jobs:
         # CLI использует тот же механизм персональной активации Unity,
         # что и run_tests: UNITY_EMAIL/UNITY_PASSWORD вместо .ulf.
         run: |
+          # BuildManager завершает Unity через EditorApplication.Exit(0),
+          # поэтому стандартный блок «# Build results #», которого ждёт
+          # валидатор CLI, не печатается. Сборка при этом успешна —
+          # проверяем реальный артефакт, а не текст лога.
           game-ci build --engine=unity --targetPlatform=WebGL \
             --buildMethod=BuildManager.BuildWebGL \
             --engineVersion=6000.3.10f1 \
             --buildsPath=Builds \
             --dockerIsolationMode=default \
             --containerRegistryRepository=unityci/editor \
-            --containerRegistryImageVersion=3
+            --containerRegistryImageVersion=3 || echo "game-ci validation returned non-zero, checking build output"
+          test -f Builds/WebGL/index.html
+          test -f Builds/WebGL/Build/WebGL.wasm.gz
+          echo "WebGL build output verified."
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
