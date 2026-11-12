@@ -127,8 +127,10 @@ jobs:
           ls -la
           echo "=== Unity build log (tail) ==="
           if [ -f build_webgl.log ]; then tail -30 build_webgl.log; fi
+          echo "=== Builds/WebGL/Build ==="
+          ls -la Builds/WebGL/Build 2>/dev/null || true
           echo "=== find WebGL artifacts ==="
-          find . -maxdepth 6 \( -name index.html -o -name "*.wasm.gz" \) -print | head -20
+          find . -maxdepth 6 \( -name index.html -o -name "*.wasm*" -o -name "*.data*" \) -print | head -30
 
       - name: Upload build log
         if: always()
@@ -141,8 +143,13 @@ jobs:
       - name: Verify build output
         run: |
           test -f Builds/WebGL/index.html
-          test -f Builds/WebGL/Build/WebGL.wasm.gz
-          echo "WebGL build output verified."
+          ls -la Builds/WebGL/Build
+          if ls Builds/WebGL/Build/*.wasm.gz Builds/WebGL/Build/*.wasm.br Builds/WebGL/Build/*.wasm.unityweb >/dev/null 2>&1; then
+            echo "WebGL wasm file found."
+          else
+            echo "No WebGL wasm file found."
+            exit 1
+          fi
 
       - name: Upload WebGL Artifact
         uses: actions/upload-artifact@v4

@@ -28,6 +28,14 @@ public static class BuildManager
         Debug.Log("[CI/CD] Запущен автоматический процесс сборки WebGL...");
         Debug.Log($"[CI/CD] Путь сборки: {WebGLBuildPath}");
 
+        // Принудительно задаём Gzip и Decompression Fallback.
+        // В Linux-контейнере ProjectSettings может прочитаться иначе,
+        // поэтому не полагаемся на файл настроек.
+        PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Gzip;
+        PlayerSettings.WebGL.decompressionFallback = true;
+        Debug.Log($"[CI/CD] Compression={PlayerSettings.WebGL.compressionFormat}, " +
+                  $"DecompressionFallback={PlayerSettings.WebGL.decompressionFallback}");
+
         // 1. Получаем список сцен, включенных в настройки проекта (Build Settings)
         string[] levels = GetScenes();
         if (levels.Length == 0)
