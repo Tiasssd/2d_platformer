@@ -68,9 +68,41 @@ jobs:
           name: test-results
           path: artifacts/
 
-  # ЗАДАЧА 3 (ЛР №3): Сборка Docker-образа с Nginx и публикация в GHCR
-  build_docker_image:
+  # ЗАДАЧА 3 (ЛР №5): Настоящая компиляция WebGL в облаке
+  build_game:
     needs: run_tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-Build-${{ hashFiles('Packages/packages-lock.json', 'Assets/**/*.asmdef') }}
+
+      - name: Build WebGL Player
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: WebGL
+          buildMethod: BuildManager.BuildWebGL
+          unityVersion: 6000.3.10f1
+
+      - name: Upload WebGL Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WebGL-Build
+          path: Builds/WebGL
+
+  # ЗАДАЧА 4 (ЛР №5): Docker-образ с настоящей игрой
+  build_docker_image:
+    needs: build_game
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -79,19 +111,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Create Compressed Placeholders for Docker
-        # В Git папка Builds/WebGL исключена через .gitignore,
-        # поэтому до появления реальной облачной сборки (ЛР №5)
-        # создаём файлы-заглушки, чтобы COPY в Dockerfile не упал.
-        run: |
-          mkdir -p Builds/WebGL/Build
-          if [ -z "$(ls -A Builds/WebGL/Build)" ]; then
-            echo "<h3>Unity 6 Compressed Game Cloud Layer</h3>" > Builds/WebGL/index.html
-            touch Builds/WebGL/Build/game.framework.js.gz
-            touch Builds/WebGL/Build/game.wasm.gz
-            touch Builds/WebGL/Build/game.data.gz
-            echo "Создана временная структура сжатых файлов для сборщика Docker."
-          fi
+      - name: Download WebGL Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: WebGL-Build
+          path: Builds/WebGL
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -110,7 +134,29 @@ jobs:
             ghcr.io/tiasssd/platformer-game:latest
             ghcr.io/tiasssd/platformer-game:${{ github.sha }}
 
-  # ЗАДАЧА 4: Автоматическое зеркалирование в резервный репозиторий
+  # ЗАДАЧА 5 (ЛР №5): Деплой игры на GitHub Pages
+  deploy_to_pages:
+    needs: build_game
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download WebGL Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: WebGL-Build
+          path: Builds/WebGL
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: Builds/WebGL
+          branch: gh-pages
+
+  # ЗАДАЧА 6: Автоматическое зеркалирование в резервный репозиторий
   mirror_repo:
     needs: run_tests
     if: github.repository == 'Tiasssd/2d_platformer'
