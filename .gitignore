@@ -6,7 +6,6 @@
 [B|b]uild/
 [B|b]uilds/
 [Uu]ser[Ss]ettings/
-[P|p]roject[Ss]ettings/ProjectVersion.txt
 *.cs.md
 *.csproj
 *.unityproj
