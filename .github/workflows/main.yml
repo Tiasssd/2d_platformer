@@ -84,15 +84,25 @@ jobs:
           path: Library
           key: Library-Build-${{ hashFiles('Packages/packages-lock.json', 'Assets/**/*.asmdef') }}
 
+      - name: Install GameCI CLI
+        run: |
+          curl -sL -o game-ci.tar.gz https://github.com/game-ci/cli/releases/download/v0.1.72/game-ci-linux-x64.tar.gz
+          tar xzf game-ci.tar.gz ./game-ci
+          echo "$PWD" >> $GITHUB_PATH
+
       - name: Build WebGL Player
-        uses: game-ci/unity-builder@v4
+        # CLI использует тот же механизм персональной активации Unity,
+        # что и run_tests: UNITY_EMAIL/UNITY_PASSWORD вместо .ulf.
+        run: |
+          game-ci build --engine=unity --targetPlatform=WebGL \
+            --buildMethod=BuildManager.BuildWebGL \
+            --engineVersion=6000.3.10f1 \
+            --dockerIsolationMode=default \
+            --containerRegistryRepository=unityci/editor \
+            --containerRegistryImageVersion=3
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          targetPlatform: WebGL
-          buildMethod: BuildManager.BuildWebGL
-          unityVersion: 6000.3.10f1
 
       - name: Upload WebGL Artifact
         uses: actions/upload-artifact@v4
