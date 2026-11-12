@@ -105,10 +105,26 @@ CMD ["nginx", "-g", "daemon off;"]
 docker run -d -p 8080:80 --name unity_compressed_container platformer-compressed:v1
 ```
 
-Игра открыта по адресу `http://localhost:8080`; в DevTools на вкладке Network у файла `WebGL.wasm.gz` присутствует заголовок `Content-Encoding: gzip`. После проверки контейнер остановлен и удалён:
+Игра открыта по адресу `http://localhost:8080`; в DevTools на вкладке Network у файла `WebGL.wasm.gz` присутствует заголовок `Content-Encoding: gzip`. Игра, запущенная из локального контейнера, показана на рисунке 3. Ответ Nginx, подтверждающий заголовок, приведён в листинге 5. После проверки контейнер остановлен и удалён:
 
 ```
 docker stop unity_compressed_container && docker rm unity_compressed_container
+```
+
+![Рисунок 3 – Игра открыта из локального Docker-контейнера](screenshots/lr3_game_local.png)
+
+Листинг 5 — Ответ Nginx для файла `WebGL.wasm.gz`
+
+```
+HTTP/1.1 200 OK
+Server: nginx/1.31.8
+Content-Type: application/wasm
+Content-Length: 14148129
+Last-Modified: Thu, 12 Nov 2026 16:24:43 GMT
+Connection: keep-alive
+ETag: "6af5e84b-d7e221"
+Content-Encoding: gzip
+Accept-Ranges: bytes
 ```
 
 ### Пайплайн GitHub Actions
@@ -155,7 +171,13 @@ docker stop unity_compressed_container && docker rm unity_compressed_container
 
 ### Результаты
 
-После объединения pull request с веткой `main` пайплайн запустился автоматически. Все три задачи — `sanity_check`, `build_docker_image` и `mirror_repo` — завершились успешно. В профиле GitHub появился пакет `platformer-game` с тегами `latest` и тегом коммита.
+После объединения pull request с веткой `main` пайплайн запустился автоматически. Все три задачи — `sanity_check`, `build_docker_image` и `mirror_repo` — завершились успешно. Результат прогона показан на рисунке 1.
+
+![Рисунок 1 – Все три задачи пайплайна завершены успешно](screenshots/lr3_actions.png)
+
+В профиле GitHub появился пакет `platformer-game` с тегами `latest` и тегом коммита. Страница пакета показана на рисунке 2.
+
+![Рисунок 2 – Пакет platformer-game в GitHub Packages](screenshots/lr3_packages.png)
 
 ## Вывод
 
