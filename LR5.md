@@ -87,7 +87,17 @@ grep -n "webGLCompressionFormat\|webGLDecompressionFallback" ProjectSettings/Pro
 
 ### Результаты
 
-После объединения pull request с `main` пайплайн выполнил все задачи. В журнале `build_game` появилась строка `[CI/CD] УСПЕХ! WebGL билд успешно создан.` с временем и размером сборки — значит, компиляция выполнена именно методом `BuildManager.BuildWebGL`, а не стандартной сборкой Unity. Артефакт `WebGL-Build` содержит настоящие файлы сборки (`.unityweb` — это gzip внутри), в ветке `gh-pages` лежат `index.html`, `Build`, `StreamingAssets` и `TemplateData`, а игра открывается по адресу https://tiasssd.github.io/2d_platformer/.
+После объединения pull request с `main` пайплайн выполнил все задачи. В журнале `build_game` появилась строка `[CI/CD] УСПЕХ! WebGL билд успешно создан.` с временем и размером сборки — значит, компиляция выполнена именно методом `BuildManager.BuildWebGL`, а не стандартной сборкой Unity. Успешный прогон показан на рисунке 1.
+
+![Рисунок 1 – Все задачи пайплайна, включая build_game, deploy_to_pages и build_docker_image, завершены успешно](screenshots/lr5_actions.png)
+
+Артефакт `WebGL-Build` содержит настоящие файлы сборки: `index.html`, `Build/WebGL.loader.js`, `WebGL.data.unityweb`, `WebGL.framework.js.unityweb` и `WebGL.wasm.unityweb`. Файлы `.unityweb` — это gzip внутри (первые байты `1F 8B`); так Unity 6 поступает при включённом Decompression Fallback. В ветке `gh-pages` лежат `index.html`, `Build`, `StreamingAssets` и `TemplateData`. Образ `platformer-game` опубликован в GHCR с тегами `latest` и SHA коммита, что показано на рисунке 2.
+
+![Рисунок 2 – Образ platformer-game в GHCR с тегами latest и SHA](screenshots/lr5_package.png)
+
+Игра открывается по адресу https://tiasssd.github.io/2d_platformer/ и работает в браузере, что показано на рисунке 3.
+
+![Рисунок 3 – Игра, собранная в облаке и опубликованная на GitHub Pages](screenshots/lr5_pages_game.png)
 
 Параметры облачной сборки приведены в таблице 1.
 
