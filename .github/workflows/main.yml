@@ -85,10 +85,13 @@ jobs:
           key: Library-Build-${{ hashFiles('Packages/packages-lock.json', 'Assets/**/*.asmdef') }}
 
       - name: Install GameCI CLI
+        # Ставим CLI вне рабочей копии: иначе game-ci и tar.gz делают
+        # git worktree грязным, и CLI отказывается строить semantic version.
         run: |
+          cd "$RUNNER_TEMP"
           curl -sL -o game-ci.tar.gz https://github.com/game-ci/cli/releases/download/v0.1.72/game-ci-linux-x64.tar.gz
           tar xzf game-ci.tar.gz ./game-ci
-          echo "$PWD" >> $GITHUB_PATH
+          echo "$RUNNER_TEMP" >> $GITHUB_PATH
 
       - name: Build WebGL Player
         # CLI использует тот же механизм персональной активации Unity,
