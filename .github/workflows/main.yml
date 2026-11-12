@@ -86,36 +86,45 @@ jobs:
           # чтобы не импортировать все ассеты заново.
           key: Library-${{ hashFiles('Packages/packages-lock.json', 'Assets/**/*.asmdef') }}
 
-      - name: Install GameCI CLI
-        # Ставим CLI вне рабочей копии: иначе game-ci и tar.gz делают
-        # git worktree грязным, и CLI отказывается строить semantic version.
-        run: |
-          cd "$RUNNER_TEMP"
-          curl -sL -o game-ci.tar.gz https://github.com/game-ci/cli/releases/download/v0.1.72/game-ci-linux-x64.tar.gz
-          tar xzf game-ci.tar.gz ./game-ci
-          echo "$RUNNER_TEMP" >> $GITHUB_PATH
-
-      - name: Build WebGL Player
-        # CLI использует тот же механизм персональной активации Unity,
-        # что и run_tests: UNITY_EMAIL/UNITY_PASSWORD вместо .ulf.
-        run: |
-          # BuildManager завершает Unity через EditorApplication.Exit(0),
-          # поэтому стандартный блок «# Build results #», которого ждёт
-          # валидатор CLI, не печатается. Сборка при этом успешна —
-          # проверяем реальный артефакт, а не текст лога.
-          game-ci build --engine=unity --targetPlatform=WebGL \
-            --buildMethod=BuildManager.BuildWebGL \
-            --engineVersion=6000.3.10f1 \
-            --buildsPath=Builds \
-            --dockerIsolationMode=default \
-            --containerRegistryRepository=unityci/editor \
-            --containerRegistryImageVersion=3 || echo "game-ci validation returned non-zero, checking build output"
-          test -f Builds/WebGL/index.html
-          test -f Builds/WebGL/Build/WebGL.wasm.gz
-          echo "WebGL build output verified."
+      - name: Build WebGL in Unity container
+        # Официальный образ GameCI + прямая активация через Unity Licensing
+        # Client. Это обходит валидатор CLI, который ждёт стандартный блок
+        # Build results, а BuildManager завершает Unity через
+        # EditorApplication.Exit(0).
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          docker run --rm \
+            -v "$PWD":/project \
+            -w /project \
+            -e UNITY_EMAIL \
+            -e UNITY_PASSWORD \
+            unityci/editor:6000.3.10f1-webgl-3 \
+            bash -c '
+              set -e
+              LC=$(find /opt/unity -name "Unity.Licensing.Client" -type f | head -1)
+              echo "Licensing client: $LC"
+              "$LC" --activate-all --include-personal \
+                --username "$UNITY_EMAIL" --password "$UNITY_PASSWORD"
+              if command -v xvfb-run >/dev/null 2>&1; then
+                xvfb-run -a /opt/unity/Editor/Unity \
+                  -batchmode -nographics -projectPath /project \
+                  -executeMethod BuildManager.BuildWebGL -quit \
+                  -logFile /project/build_webgl.log
+              else
+                /opt/unity/Editor/Unity \
+                  -batchmode -nographics -projectPath /project \
+                  -executeMethod BuildManager.BuildWebGL -quit \
+                  -logFile /project/build_webgl.log
+              fi
+            '
+
+      - name: Verify build output
+        run: |
+          test -f Builds/WebGL/index.html
+          test -f Builds/WebGL/Build/WebGL.wasm.gz
+          echo "WebGL build output verified."
 
       - name: Upload WebGL Artifact
         uses: actions/upload-artifact@v4
