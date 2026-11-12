@@ -27,9 +27,50 @@ jobs:
           find Assets/ -name "*Controller.cs" -print
           find Assets/ -name "BuildManager.cs" -print
 
-  # ЗАДАЧА 2 (ЛР №3): Сборка Docker-образа с Nginx и публикация в GHCR
-  build_docker_image:
+  # ЗАДАЧА 2 (ЛР №4): Автоматический запуск тестов Unity
+  run_tests:
     needs: sanity_check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-${{ hashFiles('Packages/packages-lock.json', 'Assets/**/*.asmdef') }}
+
+      - name: Install GameCI CLI
+        run: |
+          curl -sL -o game-ci.tar.gz https://github.com/game-ci/cli/releases/download/v0.1.72/game-ci-linux-x64.tar.gz
+          tar xzf game-ci.tar.gz ./game-ci
+          echo "$PWD" >> $GITHUB_PATH
+
+      - name: Run Unity Tests
+        run: |
+          game-ci test --docker --dockerShmSize=1025m \
+            --engine=unity --testPlatforms='playmode;editmode;COMBINE_RESULTS' \
+            --engineVersion=6000.3.10f1 --coverageEnabled=false \
+            --artifactsPath=artifacts --dockerIsolationMode=default \
+            --containerRegistryRepository=unityci/editor \
+            --containerRegistryImageVersion=3
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: artifacts/
+
+  # ЗАДАЧА 3 (ЛР №3): Сборка Docker-образа с Nginx и публикация в GHCR
+  build_docker_image:
+    needs: run_tests
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -69,9 +110,9 @@ jobs:
             ghcr.io/tiasssd/platformer-game:latest
             ghcr.io/tiasssd/platformer-game:${{ github.sha }}
 
-  # ЗАДАЧА 3: Автоматическое зеркалирование в резервный репозиторий
+  # ЗАДАЧА 4: Автоматическое зеркалирование в резервный репозиторий
   mirror_repo:
-    needs: sanity_check
+    needs: run_tests
     if: github.repository == 'Tiasssd/2d_platformer'
     runs-on: ubuntu-latest
     steps:

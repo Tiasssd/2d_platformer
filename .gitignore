@@ -20,3 +20,6 @@
 *.opendb
 *.VC.db
 build_webgl.log
+
+TestResults_*.xml
+test_*.log
