@@ -77,22 +77,30 @@
 
 ### Проверка успешного сценария
 
-После объединения pull request с веткой `main` пайплайн полностью отработал, и в Telegram пришло сообщение:
+После объединения pull request с веткой `main` пайплайн полностью отработал (все задачи, включая `notify`, зелёные), и в Telegram пришло сообщение:
 
 > Сборка 2d_platformer завершена успешно.
-> Автор коммита: Shekh Matvey
+> Автор коммита: Tiasssd
 > Игра доступна: https://tiasssd.github.io/2d_platformer/
-> Прогон: https://github.com/Tiasssd/2d_platformer/actions/runs/…
+> Прогон: https://github.com/Tiasssd/2d_platformer/actions/runs/43330118914
+
+Успешный прогон показан на рисунке 1.
+
+![Рисунок 1 – Все задачи, включая notify, завершены успешно](screenshots/lr6_success.png)
 
 ### Проверка аварийного сценария
 
-Для демонстрации защиты в тест варианта 18 временно добавлено ложное условие `Assert.AreEqual(1, 2)`, после чего запущен пайплайн из ветки `LR4-broken`. Задача `run_tests` завершилась ошибкой, зависимые задачи `build_game`, `build_docker_image`, `deploy_to_pages` и `mirror_repo` остались в состоянии `Skipped`. В Telegram пришло сообщение:
+Для демонстрации защиты в ветке `LR6-fail` временно изменена проверка структуры: `sanity_check` искал несуществующую папку `ProjectSettings_MISSING`. Пайплайн запущен вручную через `workflow_dispatch`. Задача `sanity_check` завершилась ошибкой, задачи `run_tests`, `build_game`, `build_docker_image`, `deploy_to_pages` и `mirror_repo` остались в состоянии `Skipped`, а `notify` выполнилась и осталась зелёной. В Telegram пришло сообщение:
 
-> Сборка 2d_platformer упала на задаче run_tests.
-> Автор коммита: Shekh Matvey
-> Лог прогона: https://github.com/Tiasssd/2d_platformer/actions/runs/…
+> Сборка 2d_platformer упала на задаче sanity_check.
+> Автор коммита: Tiasssd
+> Лог прогона: https://github.com/Tiasssd/2d_platformer/actions/runs/43330483675
 
-После проверки тест возвращён в рабочее состояние, ветка `LR4-broken` удалена, а следующий прогон в `main` снова стал зелёным.
+Аварийный прогон показан на рисунке 2.
+
+![Рисунок 2 – sanity_check упал, зависимые задачи пропущены, notify отправил сообщение](screenshots/lr6_failure.png)
+
+После проверки ветка `LR6-fail` удалена, а следующий прогон в `main` снова стал зелёным.
 
 ## Вывод
 
