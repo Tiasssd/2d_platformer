@@ -23,9 +23,3 @@
 - Пайплайн: [.github/workflows/main.yml](.github/workflows/main.yml)
 - Docker-образ: `ghcr.io/tiasssd/platformer-game`
 - Игра на GitHub Pages: https://tiasssd.github.io/2d_platformer/
-
-## Развёртывание на новом устройстве
-
-- [SETUP.md](SETUP.md) — пошаговая инструкция: Unity, Docker, тесты, сборка.
-- [PROMPT.md](PROMPT.md) — готовый промт для ИИ-ассистента.
-- [setup.ps1](setup.ps1) — проверка инструментов и клонирование репозитория.
