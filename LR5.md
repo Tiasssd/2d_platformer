@@ -107,8 +107,8 @@ grep -n "webGLCompressionFormat\|webGLDecompressionFallback" ProjectSettings/Pro
 |---|---|
 | Версия Unity | 6000.3.10f1 |
 | Режим сжатия | Gzip + Decompression Fallback |
-| Время сборки | 770,73 с |
-| Размер сборки | 21 476 940 байт |
+| Время сборки | 1260,49 с |
+| Размер сборки | 21 477 411 байт |
 | Артефакт | `WebGL-Build` |
 | Файлы | `index.html`, `Build/*.unityweb`, `Build/WebGL.loader.js` |
 
